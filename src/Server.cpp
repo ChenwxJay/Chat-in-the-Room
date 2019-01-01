@@ -7,6 +7,7 @@
 #define USER_LIMIT 5
 #define READ_BUFFER_SIZE 64 //读缓冲区大小
 #define FD_LIMIT 65535
+#define LISTEN_LIMIT 10
 
 //客户端数据结构体封装
 struct ClientData{
@@ -25,6 +26,45 @@ int main(){
 	if(argc <= 2){
 
 	}
+	const char* ip = argv[1];
+    int port = atoi(argv[2]);
+    //定义变量
+    int ret = 0;
+    struct sockaddr_in address;
+    bzero(&address,sizeof(address));//第二个参数是
+    address.sin_family = AF_INET;//填充协议，IPV4
+    //将ip地址转为网络字节序，填充
+    inet_pton(AF_INET,ip,&address.sin_addr);
+    //填充端口
+    address.port = htons(port);
+
+    //创建服务器监听套接字
+    int listen_fd = socket(AF_INET,SOCK_STREAM,0);//ipv4,TCP流套接字
+    assert(listen_fd > 0);
+    //绑定IP地址和端口
+    ret = bind(listen_fd,(struct sockaddr*)&address,sizeof(address));
+    assert(ret > 0);
+    //设置监听队列
+    ret = listen(listen_fd,LISTEN_LIMIT);
+    assert(ret > 0);
+    
+    //创建用户数据数组，每个socket连接对应一个数组元素
+    ClientData* users = new ClientData[FD_LIMIT];
+    //创建监听数组
+	pollfd fds[USER_LIMIT+1];
+	//初始化客户端数量
+	int user_counter = 0;
+	//循环初始化fds数组
+	for(int i = 1;i < =USER_LIMIT;i++){
+		fds[i].fd  = -1;
+		fds[i].events = 0;
+		fds[i].revents = 0;
+	}
+	//第一个描述符存储服务器监听套接字描述符
+	fds[0].fd = listen_fd;
+	fds[0].events = POLLIN | POLLERR; //监听错误事件和可读事件
+	fds[0].revents = 0;
+
 	//事件循环，使用poll对网络连接事件和可读事件进行监听
 	while(1)
 	{
