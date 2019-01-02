@@ -3,6 +3,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <poll.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <string.h>
+#include <epoll.h>
 
 #define USER_LIMIT 5
 #define READ_BUFFER_SIZE 64 //读缓冲区大小
@@ -22,7 +30,7 @@ int SetNonBlocking(int fd){
    fcntl(fd,F_SETFL,new_options);
    return old_options;//返回原来的描述符属性
 }
-int main(){
+int main(int argc,char* argv[]){
 	if(argc <= 2){
 
 	}
@@ -36,14 +44,16 @@ int main(){
     //将ip地址转为网络字节序，填充
     inet_pton(AF_INET,ip,&address.sin_addr);
     //填充端口
-    address.port = htons(port);
+    address.sin_port = htons(port);
 
     //创建服务器监听套接字
     int listen_fd = socket(AF_INET,SOCK_STREAM,0);//ipv4,TCP流套接字
     assert(listen_fd > 0);
+
     //绑定IP地址和端口
     ret = bind(listen_fd,(struct sockaddr*)&address,sizeof(address));
     assert(ret > 0);
+    
     //设置监听队列
     ret = listen(listen_fd,LISTEN_LIMIT);
     assert(ret > 0);
