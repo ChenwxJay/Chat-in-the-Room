@@ -4,10 +4,18 @@
 #include <assert.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <poll.h>
+#include <string.h>
+#include <stdio.h>
+
 
 #define USER_LIMIT 5
 #define READ_BUFFER_SIZE 64 //读缓冲区大小
 #define FD_LIMIT 65535
+
 //客户端数据封装
 struct ClientData{
 	sockaddr_in address;
